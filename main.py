@@ -5,22 +5,33 @@ target_login = 'admin'
 target_password = 'admin'
 target_mcode = 'mcode'
 target_pcode = 'pcode'
- 
+current_vidgets = {'Label': {}, 'Entry': {}, 'Button': {}, 'Combobox': {}}
+
+def add_vid_to_grid_and_dict(vidget, location_parameters):
+    vidget.grid(row=location_parameters['row'], column=location_parameters['column'], columnspan=location_parameters['columnspan'])
+    vidget_type = vidget.winfo_class()
+    vidget_name = vidget.winfo_name()
+    current_vidgets[vidget_type][vidget_name] = vidget
+
+def remove_vid_from_grid_and_dict(vidget):
+    vidget.grid_remove()
+    vidget_type = vidget.winfo_class()
+    vidget_name = vidget.winfo_name()
+    current_vidgets[vidget_type].pop(vidget_name)
+
 def click_entrybtn():
     login = entrylog.get()
     password = entrypass.get()
     if target_login == login and target_password == password:
-        labellog.grid_remove()
-        labelpass.grid_remove()
-        entrylog.grid_remove()
-        entrypass.grid_remove()
-        entrybtn.grid_remove()
-        regbtn.grid_remove()
-        forgotpass.grid_remove()
-        entrymcode.grid(row=2, column=5,columnspan=2)
-        labelmcode.grid(row=2, column=2, columnspan=2)
-        mcodebtn.grid(row=3, column=3, columnspan=2)
-        remcodebtn.grid(row=4, column=3, columnspan=2)
+        vidgets_to_remove = [labellog, labelpass, entrylog, entrypass, entrybtn, regbtn, forgotpass]
+        for vidget in vidgets_to_remove:
+            remove_vid_from_grid_and_dict(vidget)
+        vidgets_to_add = [(entrymcode, {'row': 2, 'column': 5, 'columnspan': 2}),
+                          (labelmcode, {'row': 2, 'column': 2, 'columnspan': 2}), 
+                          (mcodebtn, {'row': 3, 'column': 3, 'columnspan': 2}),
+                          (remcodebtn, {'row': 4, 'column': 3, 'columnspan': 2})]
+        for vidget_and_location in vidgets_to_add:
+            add_vid_to_grid_and_dict(*vidget_and_location)
     else:
         entrybtn["text"] = "Неверный логин или пароль"
         entrybtn['bg'] = 'red'  
@@ -60,12 +71,12 @@ def click_gobtn():
         decypher.grid(row=3, column = 0, columnspan=3)
         decypherbtn.grid(row=5, column = 0, columnspan=2)
         decypher_result.grid(row=7, column = 0, columnspan=2)
-        loadbtn.grid(row=3, column = 7, columnspan=2)
+        combobox2.grid(row=3, column=7, columnspan=2)
     if combobox.get() == 'Зашифровать':
         cypher.grid(row=3, column = 0, columnspan=3)
         cypherbtn.grid(row=5, column = 0, columnspan=2)
-        cypher_result.grid(row=7, column = 0, columnspan=2)
-        loadbtn.grid(row=3, column = 7, columnspan=2)
+        cypher_result.grid(row=7, column = 0, columnspan=2) 
+        combobox2.grid(row=3, column=7, columnspan=2) 
 
 def caesar_encryption(plaintext):
     encryption_str = ''
@@ -108,18 +119,24 @@ def click_cypherbtn():
 def click_decypherbtn():
    decypher_result['text'] = caesar_decryption(decypher.get())
 
-        
-#def click_exitbtn():
-#   Tk.destroy
-#   root = Tk()     
-#   root.title("Шифратор")    
-#   root.geometry("300x250")    
-#   labellog.grid(row=2, column=2, columnspan=2)
-#   entrylog.grid(row=2, column=4, columnspan=3)
-#   entrypass.grid(row=4, column=4, columnspan=3)
-#   entrybtn.grid(row=5, column=2, columnspan=5)
-#   forgotpass.grid(row=6, column=2, columnspan=5)
-#   regbtn.grid(row=8, column=2, columnspan=5)  
+def click_exitbtn():
+    for vidget_class_name in current_vidgets:
+        for vidget in current_vidgets[vidget_class_name]:
+            vidget.grid_remove()
+        current_vidgets[vidget_class_name].clear()
+    draw_entry_window_vidgets()
+
+def draw_entry_window_vidgets():
+    vidgets = [labellog, labelpass, entrylog, entrypass, entrybtn, forgotpass, regbtn]
+    labellog.grid(row=2, column=2, columnspan=2)
+    labelpass.grid(row=4, column=2, columnspan=2)
+    entrylog.grid(row=2, column=4, columnspan=3)
+    entrypass.grid(row=4, column=4, columnspan=3)
+    entrybtn.grid(row=5, column=2, columnspan=5)
+    forgotpass.grid(row=6, column=2, columnspan=5)
+    regbtn.grid(row=8, column=2, columnspan=5)
+
+
 
 
 #окно
@@ -152,26 +169,20 @@ repcodebtn = Button(text='Отправить ещё раз')
 #виджеты залогиненного пользователя
 options = ["Зашифровать", "Расшифровать", "Мои шифры", "Скачать"]
 combobox = ttk.Combobox(values=options)
-exitbtn = Button(text='Выйти')
+exitbtn = Button(text='Выйти', command=click_exitbtn)
 gobtn = Button(text='Перейти', command=click_gobtn)
 #виджеты "зашифровать"
 cypher = Entry()
 cypher_result = Label()
 cypherbtn = Button(text='Зашифровать', command = click_cypherbtn)
+options2 = ['RSA', 'Кузнечик']
+combobox2 = ttk.Combobox(values=options2)
 #виджеты "расшифровать"
 decypher = Entry()
 decypher_result = Label()
 decypherbtn = Button(text='Расшифровать', command = click_decypherbtn)
-#кнопка "скачать"
-loadbtn = Button(text='Скачать')
 
 #размещение виджетов
-labellog.grid(row=2, column=2, columnspan=2)
-labelpass.grid(row=4, column=2, columnspan=2)
-entrylog.grid(row=2, column=4, columnspan=3)
-entrypass.grid(row=4, column=4, columnspan=3)
-entrybtn.grid(row=5, column=2, columnspan=5)
-forgotpass.grid(row=6, column=2, columnspan=5)
-regbtn.grid(row=8, column=2, columnspan=5)
+draw_entry_window_vidgets()
 
 root.mainloop()
