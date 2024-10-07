@@ -1,10 +1,13 @@
 from tkinter import *
 from tkinter import ttk
+import time 
+import pyotp 
+import qrcode 
 
 target_login = 'admin'
 target_password = 'admin'
 target_mcode = 'mcode'
-target_pcode = 'pcode'
+target_qrcode = 'qrcode'
 current_vidgets = {'Label': {}, 'Entry': {}, 'Button': {}, 'Combobox': {}}
 
 def add_vid_to_grid_and_dict(vidget, location_parameters):
@@ -26,10 +29,13 @@ def click_entrybtn():
         vidgets_to_remove = [labellog, labelpass, entrylog, entrypass, entrybtn, regbtn, forgotpass]
         for vidget in vidgets_to_remove:
             remove_vid_from_grid_and_dict(vidget)
-        vidgets_to_add = [(entrymcode, {'row': 2, 'column': 5, 'columnspan': 2}),
-                          (labelmcode, {'row': 2, 'column': 2, 'columnspan': 2}), 
-                          (mcodebtn, {'row': 3, 'column': 3, 'columnspan': 2}),
-                          (remcodebtn, {'row': 4, 'column': 3, 'columnspan': 2})]
+        vidgets_to_add = [(labelmail, {'row': 1, 'column': 2, 'columnspan': 2}),
+                          (entrymail, {'row': 1, 'column': 4, 'columnspan': 4}),
+                          (sendmcodebtn, {'row': 2, 'column': 3, 'columnspan': 2}),
+                          (entrymcode, {'row': 5, 'column': 5, 'columnspan': 2}),
+                          (labelmcode, {'row': 5, 'column': 2, 'columnspan': 2}), 
+                          (mcodebtn, {'row': 6, 'column': 3, 'columnspan': 2}),
+                          (remcodebtn, {'row': 7, 'column': 3, 'columnspan': 2})]
         for vidget_and_location in vidgets_to_add:
             add_vid_to_grid_and_dict(*vidget_and_location)
     else:
@@ -39,31 +45,35 @@ def click_entrybtn():
 def click_mcodebtn():
     mcode = entrymcode.get()
     if target_mcode == mcode:
-        entrymcode.grid_remove()
-        labelmcode.grid_remove()
-        mcodebtn.grid_remove()
-        remcodebtn.grid_remove()
-        entrypcode.grid(row=2, column=5,columnspan=2)
-        labelpcode.grid(row=2, column=2, columnspan=2)
-        pcodebtn.grid(row=3, column=3, columnspan=2)
-        repcodebtn.grid(row=4, column=3, columnspan=2)
+        vidgets_to_remove = [labelmail, entrymail, sendmcodebtn, entrymcode, labelmcode, mcodebtn, remcodebtn]
+        for vidget in vidgets_to_remove:
+            remove_vid_from_grid_and_dict(vidget)
+        vidgets_to_add = [(generateqrcodebtn, {'row': 1, 'column': 3, 'columnspan': 2}),
+                          (labelqrcode, {'row': 2, 'column': 1, 'columnspan': 2}), 
+                          (entryqrcode, {'row': 2, 'column': 3, 'columnspan': 2}),
+                          (qrcodebtn, {'row': 3, 'column': 3, 'columnspan': 2}),
+                          (reqrcodebtn, {'row': 4, 'column': 3, 'columnspan': 2})]
+        for vidget_and_location in vidgets_to_add:
+            add_vid_to_grid_and_dict(*vidget_and_location)
     else:
         mcodebtn["text"] = "Неверный код"
         mcodebtn['bg'] = 'red'
 
-def click_pcodebtn():
-    pcode = entrypcode.get()
-    if target_pcode == pcode:
-        entrypcode.grid_remove()
-        labelpcode.grid_remove()
-        pcodebtn.grid_remove()
-        repcodebtn.grid_remove()
-        combobox.grid(row=0, column=0, columnspan=2)
-        gobtn.grid(row=1, column=0, columnspan=2)
-        exitbtn.grid(row=0, column=7, columnspan=1)
+
+def click_qrcodebtn():
+    qrcode = entryqrcode.get()
+    if target_qrcode == qrcode:
+        vidgets_to_remove = [entryqrcode, labelqrcode, qrcodebtn, reqrcodebtn]
+        for vidget in vidgets_to_remove:
+            remove_vid_from_grid_and_dict(vidget)
+        vidgets_to_add = [(combobox, {'row': 0, 'column': 0, 'columnspan': 2}),
+                          (gobtn, {'row': 1, 'column': 0, 'columnspan': 2}),
+                          (exitbtn, {'row': 0, 'column': 7, 'columnspan': 1})]
+        for vidget_and_location in vidgets_to_add:
+            add_vid_to_grid_and_dict(*vidget_and_location)
     else:
-        pcodebtn["text"] = "Неверный код"
-        pcodebtn['bg'] = 'red'
+        qrcodebtn["text"] = "Неверный код"
+        qrcodebtn['bg'] = 'red'
 
 def click_gobtn():
     print(combobox.get)
@@ -127,17 +137,16 @@ def click_exitbtn():
     draw_entry_window_vidgets()
 
 def draw_entry_window_vidgets():
-    vidgets = [labellog, labelpass, entrylog, entrypass, entrybtn, forgotpass, regbtn]
-    labellog.grid(row=2, column=2, columnspan=2)
-    labelpass.grid(row=4, column=2, columnspan=2)
-    entrylog.grid(row=2, column=4, columnspan=3)
-    entrypass.grid(row=4, column=4, columnspan=3)
-    entrybtn.grid(row=5, column=2, columnspan=5)
-    forgotpass.grid(row=6, column=2, columnspan=5)
-    regbtn.grid(row=8, column=2, columnspan=5)
-
-
-
+    vidgets = [(labellog, {'row': 2, 'column': 2, 'columnspan': 2}),
+               (labelpass, {'row': 4, 'column': 2, 'columnspan': 2}),
+               (entrylog, {'row': 2, 'column': 4, 'columnspan': 3}),
+               (entrypass, {'row': 4, 'column': 4, 'columnspan': 3}),
+               (entrybtn, {'row': 5, 'column': 2, 'columnspan': 5}),
+               (forgotpass, {'row': 6, 'column': 2, 'columnspan': 5}),
+               (regbtn, {'row': 8, 'column': 2, 'columnspan': 5}),]
+    for vidget_and_location in vidgets:
+            add_vid_to_grid_and_dict(*vidget_and_location)
+ 
 
 #окно
 root = Tk()     # создаем корневой объект - окно
@@ -157,15 +166,19 @@ entrybtn = Button(text='Войти', command=click_entrybtn)
 forgotpass = Button(text='Забыли пароль?')
 regbtn = Button(text='Зарегистрироваться')
 #виджеты подтверждения через код с почты
+labelmail = Label(text='Введите почту')
+entrymail = Entry()
+sendmcodebtn = Button(text='Отправить')
 entrymcode = Entry()
 labelmcode = Label(text='Код подтверждения с почты')
 mcodebtn = Button(text='Подтвердить', command=click_mcodebtn)
 remcodebtn = Button(text='Отправить ещё раз')
-#виджеты подтверждения через код с телефона
-entrypcode = Entry()
-labelpcode = Label(text='Код подтверждения с телефона')
-pcodebtn = Button(text='Подтвердить', command=click_pcodebtn)
-repcodebtn = Button(text='Отправить ещё раз')
+#виджеты подтверждения через QR код
+generateqrcodebtn = Button(text='Сгенерировать QR-код')
+entryqrcode = Entry()
+labelqrcode = Label(text='Введите код')
+qrcodebtn = Button(text='Подтвердить', command=click_qrcodebtn)
+reqrcodebtn = Button(text='Отправить ещё раз')
 #виджеты залогиненного пользователя
 options = ["Зашифровать", "Расшифровать", "Мои шифры", "Скачать"]
 combobox = ttk.Combobox(values=options)
