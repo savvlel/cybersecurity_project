@@ -59,7 +59,7 @@ def click_mcodebtn():
 
 def click_generateqrcodebtn():
     key = 'GeeksforGeeksIsBestForEverything'
-    uri = pyotp.totp.TOTP(key).provisioning_uri(name='dimas', issuer_name='pivas') 
+    uri = pyotp.totp.TOTP(key).provisioning_uri(name='cypherapp', issuer_name=entrylog.get()) 
     qrcode.make(uri).save("qr.png") 
     Image.open("qr.png").show()
     totp = pyotp.TOTP(key)
