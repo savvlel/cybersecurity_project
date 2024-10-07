@@ -1,13 +1,12 @@
 from tkinter import *
 from tkinter import ttk
-import time 
 import pyotp 
 import qrcode 
+from PIL import Image
 
 target_login = 'admin'
 target_password = 'admin'
 target_mcode = 'mcode'
-target_qrcode = 'qrcode'
 current_vidgets = {'Label': {}, 'Entry': {}, 'Button': {}, 'Combobox': {}}
 
 def add_vid_to_grid_and_dict(vidget, location_parameters):
@@ -51,19 +50,24 @@ def click_mcodebtn():
         vidgets_to_add = [(generateqrcodebtn, {'row': 1, 'column': 3, 'columnspan': 2}),
                           (labelqrcode, {'row': 2, 'column': 1, 'columnspan': 2}), 
                           (entryqrcode, {'row': 2, 'column': 3, 'columnspan': 2}),
-                          (qrcodebtn, {'row': 3, 'column': 3, 'columnspan': 2}),
-                          (reqrcodebtn, {'row': 4, 'column': 3, 'columnspan': 2})]
+                          (qrcodebtn, {'row': 3, 'column': 3, 'columnspan': 2})]
         for vidget_and_location in vidgets_to_add:
             add_vid_to_grid_and_dict(*vidget_and_location)
     else:
         mcodebtn["text"] = "Неверный код"
         mcodebtn['bg'] = 'red'
 
+def click_generateqrcodebtn():
+    key = 'GeeksforGeeksIsBestForEverything'
+    uri = pyotp.totp.TOTP(key).provisioning_uri(name='dimas', issuer_name='pivas') 
+    qrcode.make(uri).save("qr.png") 
+    Image.open("qr.png").show()
+    totp = pyotp.TOTP(key)
+    return totp.verify(entryqrcode.get())
 
 def click_qrcodebtn():
-    qrcode = entryqrcode.get()
-    if target_qrcode == qrcode:
-        vidgets_to_remove = [entryqrcode, labelqrcode, qrcodebtn, reqrcodebtn]
+    if click_generateqrcodebtn() == True:
+        vidgets_to_remove = [generateqrcodebtn, entryqrcode, labelqrcode, qrcodebtn]
         for vidget in vidgets_to_remove:
             remove_vid_from_grid_and_dict(vidget)
         vidgets_to_add = [(combobox, {'row': 0, 'column': 0, 'columnspan': 2}),
@@ -174,11 +178,10 @@ labelmcode = Label(text='Код подтверждения с почты')
 mcodebtn = Button(text='Подтвердить', command=click_mcodebtn)
 remcodebtn = Button(text='Отправить ещё раз')
 #виджеты подтверждения через QR код
-generateqrcodebtn = Button(text='Сгенерировать QR-код')
+generateqrcodebtn = Button(text='Сгенерировать QR-код', command=click_generateqrcodebtn)
 entryqrcode = Entry()
 labelqrcode = Label(text='Введите код')
 qrcodebtn = Button(text='Подтвердить', command=click_qrcodebtn)
-reqrcodebtn = Button(text='Отправить ещё раз')
 #виджеты залогиненного пользователя
 options = ["Зашифровать", "Расшифровать", "Мои шифры", "Скачать"]
 combobox = ttk.Combobox(values=options)
