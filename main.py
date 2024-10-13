@@ -3,11 +3,15 @@ from tkinter import ttk
 import pyotp 
 import qrcode 
 from PIL import Image
-
+import smtplib
+import random
+from pygost.gost3412 import * 
+ 
 target_login = 'admin'
 target_password = 'admin'
 target_mcode = 'mcode'
-current_vidgets = {'Label': {}, 'Entry': {}, 'Button': {}, 'Combobox': {}}
+current_vidgets = {'Label': {}, 'Entry': {}, 'Button': {}, 'TCombobox': {}}
+tmp_action_window_vidgets = {'Label': {}, 'Entry': {}, 'Button': {}, 'TCombobox': {}}
 
 def add_vid_to_grid_and_dict(vidget, location_parameters):
     vidget.grid(row=location_parameters['row'], column=location_parameters['column'], columnspan=location_parameters['columnspan'])
@@ -21,6 +25,19 @@ def remove_vid_from_grid_and_dict(vidget):
     vidget_name = vidget.winfo_name()
     current_vidgets[vidget_type].pop(vidget_name)
 
+def add_tmp_action_window_vidgets(vidget):
+    vidget_type = vidget.winfo_class()
+    vidget_name = vidget.winfo_name()
+    tmp_action_window_vidgets[vidget_type][vidget_name] = vidget
+
+def remove_all_tmp_action_window_vidgets():
+    for vidget_type in tmp_action_window_vidgets:
+        for vidget_name in tmp_action_window_vidgets[vidget_type]:
+            current_vidgets[vidget_type].pop(vidget_name)
+            tmp_action_window_vidgets[vidget_type][vidget_name].grid_remove()
+        tmp_action_window_vidgets[vidget_type].clear()    
+
+
 def click_entrybtn():
     login = entrylog.get()
     password = entrypass.get()
@@ -28,21 +45,36 @@ def click_entrybtn():
         vidgets_to_remove = [labellog, labelpass, entrylog, entrypass, entrybtn, regbtn, forgotpass]
         for vidget in vidgets_to_remove:
             remove_vid_from_grid_and_dict(vidget)
-        vidgets_to_add = [(labelmail, {'row': 1, 'column': 2, 'columnspan': 2}),
-                          (entrymail, {'row': 1, 'column': 4, 'columnspan': 4}),
-                          (sendmcodebtn, {'row': 2, 'column': 3, 'columnspan': 2}),
-                          (entrymcode, {'row': 5, 'column': 5, 'columnspan': 2}),
-                          (labelmcode, {'row': 5, 'column': 2, 'columnspan': 2}), 
-                          (mcodebtn, {'row': 6, 'column': 3, 'columnspan': 2}),
-                          (remcodebtn, {'row': 7, 'column': 3, 'columnspan': 2})]
+        vidgets_to_add = [(labelmail, {'row': 8, 'column': 2, 'columnspan': 2}),
+                          (entrymail, {'row': 8, 'column': 4, 'columnspan': 4}),
+                          (sendmcodebtn, {'row': 3, 'column': 2, 'columnspan': 2}),
+                          (entrymcode, {'row': 1, 'column': 5, 'columnspan': 2}),
+                          (labelmcode, {'row': 1, 'column': 2, 'columnspan': 2}), 
+                          (mcodebtn, {'row': 3, 'column': 5, 'columnspan': 2}),
+                          (remcodebtn, {'row': 4, 'column': 2, 'columnspan': 2})]
         for vidget_and_location in vidgets_to_add:
             add_vid_to_grid_and_dict(*vidget_and_location)
     else:
         entrybtn["text"] = "Неверный логин или пароль"
         entrybtn['bg'] = 'red'  
 
+def click_sendmcodebtn():
+    port = 1025  
+    server = smtplib.SMTP('localhost', port)
+    server.starttls()
+    email = "mrpetuch1387@gmail.com"
+    password = "yu2006200113sa"
+    server.login(email, password)
+    from_email = email
+    to_email = entrymail.get()
+    message = str(random.randint(000000,999999))
+    server.sendmail(from_email, to_email, message)
+    server.quit()
+    return message
+
 def click_mcodebtn():
     mcode = entrymcode.get()
+    #if mcode == click_sendmcodebtn()
     if target_mcode == mcode:
         vidgets_to_remove = [labelmail, entrymail, sendmcodebtn, entrymcode, labelmcode, mcodebtn, remcodebtn]
         for vidget in vidgets_to_remove:
@@ -80,17 +112,23 @@ def click_qrcodebtn():
         qrcodebtn['bg'] = 'red'
 
 def click_gobtn():
-    print(combobox.get)
+    remove_all_tmp_action_window_vidgets()
     if combobox.get() == 'Расшифровать':
-        decypher.grid(row=3, column = 0, columnspan=3)
-        decypherbtn.grid(row=5, column = 0, columnspan=2)
-        decypher_result.grid(row=7, column = 0, columnspan=2)
-        combobox2.grid(row=3, column=7, columnspan=2)
+        vidgets_to_add = [(decypher, {'row': 3, 'column': 0, 'columnspan': 3}),
+                          (decypherbtn, {'row': 5, 'column': 0, 'columnspan': 2}),
+                          (decypher_result, {'row': 7, 'column': 0, 'columnspan': 2}),
+                          (combobox2, {'row': 3, 'column': 7, 'columnspan': 2})]
+        for vidget_and_location in vidgets_to_add:
+            add_vid_to_grid_and_dict(*vidget_and_location)
+            add_tmp_action_window_vidgets(vidget_and_location[0])
     if combobox.get() == 'Зашифровать':
-        cypher.grid(row=3, column = 0, columnspan=3)
-        cypherbtn.grid(row=5, column = 0, columnspan=2)
-        cypher_result.grid(row=7, column = 0, columnspan=2) 
-        combobox2.grid(row=3, column=7, columnspan=2) 
+        vidgets_to_add = [(cypher, {'row': 3, 'column': 0, 'columnspan': 3}),
+                          (cypherbtn, {'row': 5, 'column': 0, 'columnspan': 2}),
+                          (cypher_result, {'row': 7, 'column': 0, 'columnspan': 2}),
+                          (combobox2, {'row': 3, 'column': 7, 'columnspan': 2})]
+        for vidget_and_location in vidgets_to_add:
+            add_vid_to_grid_and_dict(*vidget_and_location)
+            add_tmp_action_window_vidgets(vidget_and_location[0])
 
 def caesar_encryption(plaintext):
     encryption_str = ''
@@ -128,15 +166,19 @@ def caesar_decryption(ciphertext):
     return(decryption_str)
 
 def click_cypherbtn():
-   cypher_result['text'] = caesar_encryption(cypher.get())
+    if combobox2.get() == "Кузнечик":
+        kuz = GOST3412Kuznechik('GeeksforGeeksIsBestForEverything'.encode())
+        cypher_result['text'] = kuz.encrypt(cypher.get().encode()).decode()
 
 def click_decypherbtn():
-   decypher_result['text'] = caesar_decryption(decypher.get())
+    if combobox2.get() == "Кузнечик":
+        kuz = GOST3412Kuznechik('GeeksforGeeksIsBestForEverything'.encode())
+        decypher_result['text'] = kuz.decrypt(decypher.get().encode()).decode()
 
 def click_exitbtn():
     for vidget_class_name in current_vidgets:
-        for vidget in current_vidgets[vidget_class_name]:
-            vidget.grid_remove()
+        for vidget_name in current_vidgets[vidget_class_name]:
+            current_vidgets[vidget_class_name][vidget_name].grid_remove()
         current_vidgets[vidget_class_name].clear()
     draw_entry_window_vidgets()
 
@@ -172,7 +214,7 @@ regbtn = Button(text='Зарегистрироваться')
 #виджеты подтверждения через код с почты
 labelmail = Label(text='Введите почту')
 entrymail = Entry()
-sendmcodebtn = Button(text='Отправить')
+sendmcodebtn = Button(text='Отправить', command=click_sendmcodebtn)
 entrymcode = Entry()
 labelmcode = Label(text='Код подтверждения с почты')
 mcodebtn = Button(text='Подтвердить', command=click_mcodebtn)
